@@ -50,26 +50,26 @@ component DEC_2x4 is
         );
 end component;
 
-signal TmpDec : std_logic_vector(76 downto 0); 				                            -- Make generic
+signal TmpDec : std_logic_vector(76 downto 0); 				                        -- Make generic
 
 begin
 
-TmpDec (4 downto 0) <= NDEC_IN; 					                                    -- To be worked out
+TmpDec (4 downto 0) <= NDEC_IN; 					                        -- To be worked out
 
 TmpDec (5) <= NDEC_EN;
 
-OUTFOR: for i in integer(ceil(real(WIDTH/2)))-1 downto 0 generate                	    -- Used for determining "columns" of Decoders
+OUTFOR: for i in integer(ceil(real(WIDTH/2)))-1 downto 0 generate                	   	-- Used for determining "columns" of Decoders
 INFOR:      for j in 0 to integer(ceil(real(2**WIDTH/4**(i+1))))-1 generate  			-- Used for generation of Decoders in each "column"
 
-            DEC: DEC_2x4 port map                                                       -- Not complete, still need to figure out wire mapping
+            DEC: DEC_2x4 port map                                                       	-- Not complete, still need to figure out wire mapping
                 (
                 En    => TmpDec(WIDTH*j+1),
                 A(0)  => TmpDec(WIDTH*(i+1)+2*j),
-				A(1)  => TmpDec(WIDTH*(i+1)+2*j+1),
+		A(1)  => TmpDec(WIDTH*(i+1)+2*j+1),
                 B(0)  => TmpDec(WIDTH*i+j),
-				B(1)  => TmpDec(WIDTH*i+j+1),
-				B(2)  => TmpDec(WIDTH*i+j+2),
-				B(3)  => TmpDec(WIDTH*i+j+4)
+		B(1)  => TmpDec(WIDTH*i+j+1),
+		B(2)  => TmpDec(WIDTH*i+j+2),
+		B(3)  => TmpDec(WIDTH*i+j+4)
                 );
     end generate INFOR;            
 end generate OUTFOR;    

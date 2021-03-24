@@ -1,0 +1,140 @@
+----------------------------------------------------------------------------------
+-- Company: 
+-- Engineer: 
+-- 
+-- Create Date: 03/23/2021 05:36:33 PM
+-- Design Name: 
+-- Module Name: tb_lab6 - Behavioral
+-- Project Name: 
+-- Target Devices: 
+-- Tool Versions: 
+-- Description: 
+-- 
+-- Dependencies: 
+-- 
+-- Revision:
+-- Revision 0.01 - File Created
+-- Additional Comments:
+-- 
+----------------------------------------------------------------------------------
+
+
+library IEEE;
+use IEEE.STD_LOGIC_1164.ALL;
+use IEEE.NUMERIC_STD.ALL;
+use STD.textio.all;
+use IEEE.std_logic_textio.all;
+use IEEE.STD_LOGIC_arith.ALL;
+use ieee.math_real.all;
+
+
+entity tb_lab6 is
+    generic(WIDTH_TB:integer:=16);
+    
+end tb_lab6;
+
+architecture Behavioral of tb_lab6 is
+
+component TopFile is
+    generic (BarrelInputAmount: integer:= 8-1); -- -- there's actually 8 total 
+ 
+  Port ( 
+            top_clk         : in std_logic;
+            top_input       : in std_logic_vector(BarrelInputAmount downto 0);
+            top_output      : out std_logic_vector(BarrelInputAmount downto 0);
+            top_count       : in std_logic_vector(integer(ceil(log2(real(BarrelInputAmount+1))))-1 downto 0);
+            top_seg_out     : out std_logic_vector(6 downto 0); --seg cathodes(digit lines)
+            top_seg_an      : out std_logic_vector(7 downto 0);  --seg anodes(enables)
+            top_direction   : in std_logic;
+            top_rotation    : in std_logic  
+        );
+end component;
+
+signal tb_clk       : std_logic;
+signal tb_input     : std_logic_vector(WIDTH_TB-1 downto 0);
+signal tb_output    : std_logic_vector(WIDTH_TB-1 downto 0);
+signal tb_count     : std_logic_vector(integer(ceil(log2(real(WIDTH_TB))))-1 downto 0);
+signal tb_seg_out   : std_logic_vector(6 downto 0);
+signal tb_seg_an    : std_logic_vector(7 downto 0);
+signal tb_direction : std_logic;
+signal tb_rotation  : std_logic;
+
+constant clock_period: time:= 10ns;
+
+file file_vectors: text;
+file file_results: text;
+
+signal tmp_tb_out: std_logic_vector(WIDTH_TB-1 downto 0);
+
+begin
+
+tmp_tb_out <= tb_output;
+
+shifty_gen: TopFile
+        generic map(BarrelInputAmount => WIDTH_TB-1)
+        port map(
+                    top_clk         => tb_clk,
+                    top_input       => tb_input,
+                    top_output      => tb_output,
+                    top_count       => tb_count,
+                    top_seg_out     => tb_seg_out,
+                    top_seg_an      => tb_seg_an,
+                    top_direction   => tb_direction,
+                    top_rotation    => tb_rotation       
+                );
+
+clk_gen: process
+    begin
+        wait for clock_period/2;
+        tb_clk <= '0';
+        wait for clock_period/2;
+        tb_clk <= '1';
+end process;
+
+
+tst_textio: process
+    variable v_ILINE: line;
+    variable v_OLINE: line;
+    
+    variable v_direc: std_logic;
+    variable v_rotat: std_logic;
+    variable v_count: std_logic_vector(integer(ceil(log2(real(WIDTH_TB))))-1 downto 0);
+    variable v_input: std_logic_vector(WIDTH_TB-1 downto 0);
+    variable v_space: character;
+    
+    
+    begin
+    file_open(file_vectors, "C:/Users/Jacob/Desktop/Desktop/CPP FILES/2021 SPRING/4304L VHDL/LAB6/barrelshifty/barrelshifty.srcs/sim_1/new/bshift_input.txt", read_mode);
+    file_open(file_results, "C:/Users/Jacob/Desktop/Desktop/CPP FILES/2021 SPRING/4304L VHDL/LAB6/barrelshifty/barrelshifty.srcs/sim_1/new/bshift_output.txt", write_mode);
+    
+    while not endfile(file_vectors) loop
+        readline(file_vectors, v_ILINE);
+        read(v_ILINE, v_direc);
+        read(v_ILINE, v_space);
+        read(v_ILINE, v_rotat);
+        read(v_ILINE, v_space);
+        hread(v_ILINE, v_count);
+        read(v_ILINE, v_space);
+        hread(v_ILINE, v_input);
+        
+        tb_direction    <= v_direc;
+        tb_rotation     <= v_rotat;
+        tb_count        <= v_count;
+        tb_input        <= v_input;
+        
+        wait for 5 * clock_period;
+        
+        write(v_OLINE, tb_input);
+        write(v_OLINE, v_space);
+        write(v_OLINE, tmp_tb_out);
+        writeline(file_results, v_OLINE);
+        
+    end loop;
+        file_close(file_vectors);
+        file_close(file_results);
+        
+        wait;
+end process;
+       
+                
+end Behavioral;
